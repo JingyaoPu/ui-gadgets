@@ -1,0 +1,16 @@
+.pat-list-item{
+    margin: 2px;
+    background-color: yellowgreen;
+}
+
+.pat-list-item-margin-top{
+    margin-top: 20px;
+}
+
+.pat-list-draggable{
+    transition: all 100ms;
+}
+
+.cursor-ondrag{
+    cursor: grab
+}
