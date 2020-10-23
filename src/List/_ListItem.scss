@@ -1,6 +1,6 @@
 .pat-list-item{
     margin: 2px;
-    background-color: yellowgreen;
+    background-color: rgb(173, 125, 85);
 }
 
 .pat-list-item-margin-top{
@@ -8,7 +8,9 @@
 }
 
 .pat-list-draggable{
-    transition: all 100ms;
+    transition: all 150ms;
+    user-select: none;
+    padding: 2px;
 }
 
 .cursor-ondrag{

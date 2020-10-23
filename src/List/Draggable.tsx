@@ -1,41 +1,47 @@
-import React, { Children, createRef, FC, Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import React, { FC, Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import { connect } from "react-redux";
 import { classNames } from '../utils/classNames';
-export interface DragableProps {
+import {
+    setDraggingPos, 
+    setDraggingObj, 
+    increaseDraggingPos,
+    setPhaseMouseDown
+} from './store/action'
+import {calCenter} from './DragContext'
 
-}
-
-const Draggable: FC<DragableProps> = React.memo((props:any) => {
-    //console.log("draggable excution")
+const Draggable: FC<any> = React.memo((props:any) => {
+    const {
+        setDraggingPos,
+        setDraggingObj,
+        setPhaseMouseDown
+    }=props
     const innerRef:any = useRef<HTMLElement>();
-    
     useEffect(()=>{
-        if(!props.draggingObj){
-            //console.log("draggable register~~~~",innerRef.current.getBoundingClientRect())
-            props.registerDraggable({ref:innerRef,index:+props.index})
-        }
+        //console.log("draggable register~~~~",innerRef.current.getBoundingClientRect())
+        props.registerDraggable({ref:innerRef})
     }
-    ,[props.draggingObj]
-    )
+    ,[])
     let styleClasses = classNames('cursor-ondrag',"pat-list-draggable");
     const provided = {
         ref:innerRef,
-        //id:props.listId,
         draggable:false,
         className:styleClasses,
-        onMouseDown:(event:any) => {
-            props.finish.current = false
-            event.preventDefault();
-                //console.log("offset:", event.nativeEvent.offsetX)
-                props.setDraggingObj({ 
-                    listId: props.listId,
-                    listRef: props.listRef, 
-                    index: props.index, 
-                    innerRef:innerRef, 
-                    originRect:innerRef.current.getBoundingClientRect(),
-                    startPos:{x:event.pageX,y:event.pageY, 
-                            offset:{x:event.nativeEvent.offsetX,y:event.nativeEvent.offsetY}}})
-        },
-        
+        onMouseDown:(event:MouseEvent) => {
+            setPhaseMouseDown()
+            const center = calCenter(innerRef.current.getBoundingClientRect())
+            setDraggingPos({pos:center,moveDireciton:'still'})
+            setDraggingObj({
+                center:center,
+                listId: props.listId,
+                listRef: props.listRef, 
+                index: props.index, 
+                innerRef:innerRef, 
+                originCenter: center,
+                originRect:innerRef.current.getBoundingClientRect(),
+                startPos:{x:event.pageX,
+                          y:event.pageY}
+            })
+        }
     }
     return (
         <Fragment>
@@ -44,4 +50,13 @@ const Draggable: FC<DragableProps> = React.memo((props:any) => {
     );
 })
 
-export default Draggable;
+
+export default connect(
+    null,
+    { 
+        setDraggingPos,
+        setDraggingObj,
+        increaseDraggingPos, 
+        setPhaseMouseDown
+    }
+  )(Draggable);

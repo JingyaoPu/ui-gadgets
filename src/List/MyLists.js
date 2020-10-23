@@ -3,8 +3,9 @@ import List from './List'
 import DragContext from './DragContext'
 import Draggable from './Draggable'
 import Droppable from './Droppable';
-
-
+import '../styles/index.scss';
+import { Provider } from "react-redux";
+import store from "./store/store";
 
 const buttonStyle = {
     marginRight: '5px',
@@ -29,8 +30,6 @@ const getButtons  = (count, offset = 0)=>
 const MyLists = () => {
     const key = useRef(0)
     key.current = key.current+1
-    const [change,setChange] = useState(null)
-    const [fresh,setFresh] = useState(false)
     const [data, setData] = useState({
         drop0:getItems(5),
         drop1:getButtons(5)
@@ -58,6 +57,8 @@ const MyLists = () => {
     }
     console.log(data)
     return ( 
+    <div style= {{display:"flex",justifyContent:"space-around"}}>
+    <Provider store={store}>
     <DragContext changeHandler={changeHandler}>
     {(context) => (
         <>
@@ -86,7 +87,7 @@ const MyLists = () => {
                 <Draggable
                 index={index}
                 {...droppableProvided}
-                {...context}>
+                >
                     {(provided)=>(
                         <div key = {`drop1${item.id}`}
                         {...provided}>
@@ -99,7 +100,10 @@ const MyLists = () => {
         </Droppable>
         </>
     )}
-    </DragContext>)
+    </DragContext>
+    </Provider>
+    </div>
+)
 }
  
 export default MyLists;

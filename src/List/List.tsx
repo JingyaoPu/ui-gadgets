@@ -1,15 +1,10 @@
 import React, {
-    ElementRef,
     FC,
-    MouseEvent,
     OlHTMLAttributes,
-    Ref,
-    useRef,
-    useState,
 } from 'react';
 import { classNames } from '../utils/classNames';
-import Draggable from './Draggable';
-
+import '../styles/index.scss';
+import BottomPlaceholder from './BottomPlaceHolder';
 
 export interface ListProps extends OlHTMLAttributes<HTMLOListElement>{
 
@@ -22,14 +17,11 @@ export type ListItemData = {
 } | null
 
 const List: FC<ListProps>  = (props: any) => {
-    let styleClasses = classNames('patlist');
-    //console.log(props)
+    let styleClasses = classNames('patlist')
     return (
-        <div className={styleClasses} ref={props.listRef} onMouseUp={props.onMouseUp}>
-            {typeof props.children == "function" ?
-                props.children({listRef:props.listRef}) :
-                props.children
-            }
+        <div className={styleClasses} ref={props.listRef}>      
+            {props.children} 
+            <BottomPlaceholder register={props.registerDraggable}/>  
         </div>
     );
 }

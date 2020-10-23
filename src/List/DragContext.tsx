@@ -1,145 +1,102 @@
 import React, {
     FC,
-    Fragment,
     MouseEvent,
-    MutableRefObject,
-    OlHTMLAttributes,
-    PropsWithChildren,
     useEffect,
     useRef,
-    useState
 } from 'react';
-import ReactDOM from 'react-dom';
-import Draggable from './Draggable'
+import { connect } from "react-redux";
+import {
+    setDraggingPos,
+    setPhaseDragging,
+    setDraggingObjIn,
+    setPhaseDropping,
+    setPhaseNone
+} from './store/action'
+import {PhaseTypes} from './store/reducers/phase'
 
 const DragContext: FC<any> = (props) => {
-    //const [draggFrom,setDraggFrom] = useState(null)
-    //const [hoverAt, setHoverAt] = useState(null)
-    const [draggingObj,setDraggingObj] = useState<any>(null)
-    const [droppingObj,setDroppingObj] = useState<any>(null)
-    const [draggingPos,setDraggingPos] = useState<any>(null)
-    const [dragCenterInList,setDragCenterInList] = useState<any>(null)
-    const [pullbackToList,setPullbackToList] = useState<any>(null)
-    const [mouseP,setMouseP] = useState<any>(null)
-    const [returnRes,setReturnRes] = useState<any>(null)
-    //const [finishDrag,setFinishDrag]  = useState<boolean>(false)
-    const finish = useRef<any>(null)
-    const mousePos:any = useRef()
     const droppableRegistry:any = useRef([])
     const registerDroppable = (content:any)=>{
         droppableRegistry.current = [...droppableRegistry.current,content];
     }
-    
 
-    const onDragHandler = (pos:any)=>{
-        //if(updatingDraggable) return
-        //console.log("onDragHandler,draggingObj ",draggingObj)
-        draggingObj.innerRef.current.setAttribute("style",`
-        transform:translate(${pos.x-draggingObj.startPos.x}px,
-            ${pos.y-draggingObj.startPos.y}px);z-index:99
-        `)
-        const offSet = draggingObj.startPos.offset;
-        const bound = draggingObj.innerRef.current.getBoundingClientRect();
-        const cpos =  {x:pos.x-offSet.x+bound.width/2,
-                       y:pos.y-offSet.y+ bound.height/2}
-        setDraggingPos(cpos)
-        setDragCenterInList(calPosInlist(cpos))
+    const {
+        DraggingObj,
+        DraggingObjPos, 
+        Phase,
+        setDraggingPos,
+        setPhaseDragging,
+        setPhaseDropping,
+        setPhaseNone,
+        setDraggingObjIn
+    } = props
+
+    //set dragging phase and transform dragging obj position
+    useEffect(()=>{
+        document.addEventListener('mousemove',(event)=>mouseMoveHandlerRef.current(event))
+        document.addEventListener('mouseup',(event)=>mouseUpHandlerRef.current(event))
+        return document.removeEventListener('mousemove',mouseMoveHandlerRef.current)
+    },[])
+    const mouseMoveHandlerRef:any = useRef(()=>{})
+    const mouseUpHandlerRef:any = useRef(()=>{})
+    mouseMoveHandlerRef.current = (event:MouseEvent)=>{
+        if(Phase == PhaseTypes.mouseDown){
+            setPhaseDragging()
+            setIn()
+        }else if(Phase == PhaseTypes.dragging){
+            const origin = DraggingObj.startPos
+            const transX = event.pageX-origin.x
+            const transY = event.pageY-origin.y
+            const newPos = {
+                x:DraggingObj.originCenter.x+transX,
+                y:DraggingObj.originCenter.y+transY,
+            }
+            setDraggingPos({
+                pos:newPos,
+                moveDirection:event.movementY<0? 'up': (event.movementY>0?'down':'still')
+            })
+            DraggingObj.innerRef.current.setAttribute("style",`
+                    transform:translate(${transX}px,${transY}px);
+                    z-index:99
+                `)
+        }
+    }
+    mouseUpHandlerRef.current = (event:MouseEvent)=>{
+        console.log("drop")
+        if(Phase == PhaseTypes.dragging){
+            setPhaseDropping()
+        }else{
+            setPhaseNone()
+        }
     }
 
+    //monitor dragging obj in List change
+    useEffect(()=>{
+        if(Phase == PhaseTypes.dragging){
+            setIn()
+        }
+    },[DraggingObjPos])
 
-    const calPosInlist = (pos:any)=>{
+    const setIn = ()=>{
         let posIn:any = null
         droppableRegistry.current.forEach((d:any)=>{
-            if(calculateCenterIn(pos,d.listRef.current.getBoundingClientRect())){
+            if(calculateCenterIn(DraggingObjPos.pos,d.listRef.current.getBoundingClientRect())){
                 posIn = d.id
             }  
         })
-        return posIn
+        setDraggingObjIn(posIn)
     }
-
-    const mouseMoveHandler = (event:any)=>{
-        mousePos.current = {x:event.pageX,y:event.pageY}
-        setMouseP({x:event.pageX,y:event.pageY})
-    }
-    
-    useEffect(()=>{
-        document.addEventListener('mousemove',(event)=>mouseMoveHandler(event))
-        return document.removeEventListener('mousemove',mouseMoveHandler)
-    },[])
-
-    useEffect(()=>{
-        if(returnRes){
-            //console.log("finishDrag!!!!!!!!!!!!!!!",draggingObj)
-            setReturnRes(null)
-            setDraggingPos(null);
-            setDraggingObj(null);
-            setDroppingObj(null);
-            setDragCenterInList(null);
-            setPullbackToList(null);
-            droppableRegistry.current = []
-            props.changeHandler(
-                {from:{listId:draggingObj.listId,index:draggingObj.index},
-                to:returnRes})
-            //ReactDOM.unmountComponentAtNode(document.getElementsByTagName('div'))
-    }
-    },[returnRes])
-    
-    useEffect(()=>{
-        //console.log("mousePos change:",draggingObj,finish.current )
-        if(draggingObj){
-           if(!finish.current){
-            //console.log("onDragHandler Called!")
-            onDragHandler(mouseP)
-           }
-        }
-    },[mouseP])
-    //const refresher:any= useRef()
-    // useEffect(()=>{
-    //     if(draggingObj){
-    //         //onDragHandler(mousePos.current)
-    //         refresher.current = setInterval(()=>onDragHandler(mousePos.current),0)
-    //     }else{
-    //         clearInterval(refresher.current);
-    //     }
-    //     //if(draggingObj)dragging.current=true
-    // },[draggingObj])
-
-    useEffect(()=>{
-        if(!droppingObj) return
-        //console.log("drop obj:",droppingObj,"in list:",calPosInlist(draggingPos))
-        const endInList = calPosInlist(draggingPos)
-        setPullbackToList(endInList? endInList:-1)
-        
-    },[droppingObj])
-
 
     const context = {
         registerDroppable,
-        //draggFrom,setDraggFrom,
-        //hoverAt, setHoverAt,
-        draggingObj,setDraggingObj,
-        droppingObj,setDroppingObj,
-        draggingPos,setDraggingPos,
-        dragCenterInList,setDragCenterInList,
-        returnRes,setReturnRes,
-        pullbackToList,setPullbackToList,
-        //finishDrag,setFinishDrag,
-        finish,
-        onMouseUp:(event:any) => {
-            //console.log("mouseUp target:", event.target)
-            setDroppingObj({
-                x:event.pageX,
-                y:event.pageY})
-        },
     }
     return ( 
-    <Fragment>
-        {props.children(context) }  
-    </Fragment>
+        <>
+            {props.children(context) }  
+        </>
     );
 }
- 
-export default DragContext;
+
 export const calCenter=(rect:any)=>{
     return ({x:(rect.left+rect.right)/2, y:(rect.top+rect.bottom)/2})
 }
@@ -149,3 +106,26 @@ export const calculateCenterIn = (center:{x:number,y:number}, rect:any)=>{
         center.y < rect.top || 
         center.y > rect.bottom)
 }
+
+const mapStateToProps = (state:any) => {
+    const { 
+        DraggingObjPos,
+        DraggingObj,
+        Phase 
+    } = state;
+    return { 
+        DraggingObj,
+        DraggingObjPos, 
+        Phase
+    };
+};
+export default connect(
+    mapStateToProps,
+    {
+        setDraggingPos,
+        setPhaseDragging,
+        setPhaseDropping,
+        setPhaseNone,
+        setDraggingObjIn
+    }
+)(DragContext);
