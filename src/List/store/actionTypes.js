@@ -4,6 +4,7 @@ export const SET_DRAGGING = "SET_DRAGGING";
 export const SET_DROPPING = "SET_DROPPING";
 export const SET_ANIMATION = "SET_ANIMATION";
 export const SET_NONE = "SET_NONE";
+export const SET_READY_TO_DRAG = "SET_READY_TO_DRAG";
 
 //set  registry
 export const SET_DRAGGABLE_REG = "SET_DRAGGABLE_REG";

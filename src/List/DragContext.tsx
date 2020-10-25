@@ -27,7 +27,6 @@ const DragContext: FC<any> = (props) => {
         setDraggingPos,
         setPhaseDragging,
         setPhaseDropping,
-        setPhaseNone,
         setDraggingObjIn
     } = props
 
@@ -63,10 +62,8 @@ const DragContext: FC<any> = (props) => {
     }
     mouseUpHandlerRef.current = (event:MouseEvent)=>{
         console.log("drop")
-        if(Phase == PhaseTypes.dragging){
+        if(Phase == PhaseTypes.dragging || Phase == PhaseTypes.mouseDown){
             setPhaseDropping()
-        }else{
-            setPhaseNone()
         }
     }
 
@@ -89,6 +86,9 @@ const DragContext: FC<any> = (props) => {
 
     const context = {
         registerDroppable,
+        changeHandler:props.changeHandler,
+        droppableRegistry,
+        
     }
     return ( 
         <>

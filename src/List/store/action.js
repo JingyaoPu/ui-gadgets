@@ -6,6 +6,7 @@ export const setPhaseMouseDown = ()=> ({type:actions.SET_MOUSE_DOWN})
 export const setPhaseDragging = ()=> ({type:actions.SET_DRAGGING})
 export const setPhaseDropping = ()=> ({type:actions.SET_DROPPING})
 export const setPhaseAnimation = ()=> ({type:actions.SET_ANIMATION})
+export const setReadyToDrag = ()=> ({type:actions.SET_READY_TO_DRAG})
 
 export const setDraggingPos = pos => ({
   type: actions.SET_DRAGGING_OBJ_POS,

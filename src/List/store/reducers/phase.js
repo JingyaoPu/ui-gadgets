@@ -5,7 +5,8 @@ export const PhaseTypes = {
     none: "NONE", 
     dragging: "DRAGGING",
     mouseDown:"MOUSE_DOWN",
-    dropping:"DROPPING"
+    dropping:"DROPPING",
+    readyToDrag:"READY_TO_DRAG"
 }
 
 const Phase = (state = PhaseTypes.none, action) => {
@@ -24,6 +25,9 @@ const Phase = (state = PhaseTypes.none, action) => {
     }
     case actionTypes.SET_DROPPING: {
         return PhaseTypes.dropping;
+    }
+    case actionTypes.SET_READY_TO_DRAG: {
+        return PhaseTypes.readyToDrag;
     }
     default: {
       return state;

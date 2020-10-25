@@ -8,25 +8,30 @@ import {
     setPhaseMouseDown
 } from './store/action'
 import {calCenter} from './DragContext'
-
+import {PhaseTypes} from './store/reducers/phase'
 const Draggable: FC<any> = React.memo((props:any) => {
     const {
+        Phase,
         setDraggingPos,
         setDraggingObj,
         setPhaseMouseDown
     }=props
     const innerRef:any = useRef<HTMLElement>();
     useEffect(()=>{
-        //console.log("draggable register~~~~",innerRef.current.getBoundingClientRect())
-        props.registerDraggable({ref:innerRef})
+        
+        if(Phase == PhaseTypes.none){
+            console.log("register Draggable")
+            props.registerDraggable({ref:innerRef})
+        }
     }
-    ,[])
+    ,[Phase])
     let styleClasses = classNames('cursor-ondrag',"pat-list-draggable");
     const provided = {
         ref:innerRef,
         draggable:false,
         className:styleClasses,
         onMouseDown:(event:MouseEvent) => {
+            if(Phase != PhaseTypes.readyToDrag) return
             setPhaseMouseDown()
             const center = calCenter(innerRef.current.getBoundingClientRect())
             setDraggingPos({pos:center,moveDireciton:'still'})
@@ -50,9 +55,20 @@ const Draggable: FC<any> = React.memo((props:any) => {
     );
 })
 
-
+const mapStateToProps = (state:any) => {
+    const { 
+        DraggingObjPos,
+        DraggingObj,
+        Phase, 
+    } = state;
+    return { 
+        DraggingObj,
+        DraggingObjPos, 
+        Phase
+    };
+};
 export default connect(
-    null,
+    mapStateToProps,
     { 
         setDraggingPos,
         setDraggingObj,

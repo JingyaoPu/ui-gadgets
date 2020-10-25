@@ -23,7 +23,7 @@ const getButtons  = (count, offset = 0)=>
         id: `button${k + offset}`,
         content:<button style={buttonStyle}>
                     Default Button {k}
-        </button>
+                </button>
     }));
  
 
@@ -39,13 +39,14 @@ const MyLists = () => {
     const changeHandler = (change)=>{
         if(!change) return
         console.log(change)
-        if(change.from.listId!=change.to.listId){
+        if(change.from.listId!=change.to.listId && change.to.listId){
             const source = [...data[change.from.listId]]
             const target = [...data[change.to.listId]]
             const [temp] = source.splice(change.from.index,1)
             target.splice(change.to.index,0,temp)
             setData((data)=>({...data,[change.from.listId]:source,[change.to.listId]:target}))
-        }else{
+        }
+        else if(change.from.listId==change.to.listId){
             console.log("setting state!!!")
             const list = [...data[change.from.listId]]
             const [temp] = list.splice(change.from.index,1)
@@ -71,7 +72,7 @@ const MyLists = () => {
                 {...droppableProvided}
                 {...context}>
                     {(provided)=>(
-                        <div key = {`drop0${item.id}`}
+                        <div key = {item.id}
                         {...provided}>
                             {item.content}
                         </div>
@@ -89,7 +90,7 @@ const MyLists = () => {
                 {...droppableProvided}
                 >
                     {(provided)=>(
-                        <div key = {`drop1${item.id}`}
+                        <div key = {item.id}
                         {...provided}>
                             {item.content}
                         </div>
