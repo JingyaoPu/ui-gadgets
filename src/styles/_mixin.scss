@@ -61,3 +61,25 @@
   border-radius: $border-radius;
   border-color: $border-color;
 }
+
+@mixin list-style(
+  $color,
+  $background,
+  $border-color,
+) {
+  color: $color;
+  background: $background;
+  border-color: $border-color;
+}
+
+@mixin list-title-style(
+  $color,
+  $background,
+  $border-color,
+  $font-family,
+) {
+  color: $color;
+  background: $background;
+  border-color: $border-color;
+  font-family: $font-family;
+}

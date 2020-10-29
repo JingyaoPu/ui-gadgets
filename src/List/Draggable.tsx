@@ -1,4 +1,10 @@
-import React, { FC, Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import React, { 
+    FC, 
+    Fragment, 
+    MouseEvent, 
+    useEffect, 
+    useRef 
+} from "react";
 import { connect } from "react-redux";
 import { classNames } from '../utils/classNames';
 import {
@@ -14,25 +20,23 @@ const Draggable: FC<any> = React.memo((props:any) => {
         Phase,
         setDraggingPos,
         setDraggingObj,
-        setPhaseMouseDown
+        setPhaseMouseDown,
+        registerDraggable
     }=props
     const innerRef:any = useRef<HTMLElement>();
     useEffect(()=>{
-        
-        if(Phase == PhaseTypes.none){
-            console.log("register Draggable")
-            props.registerDraggable({ref:innerRef})
+        if(Phase === PhaseTypes.none){
+            registerDraggable({ref:innerRef})
         }
     }
-    ,[Phase])
+    ,[Phase,registerDraggable])
     let styleClasses = classNames('cursor-ondrag',"pat-list-draggable");
     const provided = {
         ref:innerRef,
         draggable:false,
         className:styleClasses,
         onMouseDown:(event:MouseEvent) => {
-            if(Phase != PhaseTypes.readyToDrag) return
-            setPhaseMouseDown()
+            if(Phase !== PhaseTypes.readyToDrag) return
             const center = calCenter(innerRef.current.getBoundingClientRect())
             setDraggingPos({pos:center,moveDireciton:'still'})
             setDraggingObj({
@@ -46,6 +50,7 @@ const Draggable: FC<any> = React.memo((props:any) => {
                 startPos:{x:event.pageX,
                           y:event.pageY}
             })
+            setPhaseMouseDown()
         }
     }
     return (

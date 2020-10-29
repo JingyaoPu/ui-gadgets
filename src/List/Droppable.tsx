@@ -24,124 +24,115 @@ const Droppable: React.FC<any> = (props: any) => {
         Phase,
         setPhaseAnimation,
         setPhaseNone,
-        setReadyToDrag
+        setReadyToDrag,
+        changeHandler,
+        droppableRegistry,
+        id
     } = props
     React.useEffect(() => {
         props.registerDroppable({
-            id: props.id,
+            id: id,
             listRef: listRef,
             rect: listRef.current.getBoundingClientRect()
         })
-    }, [])
+    },[])
     React.useEffect(() => {
         console.log(Phase)
-        if (Phase == PhaseTypes.none) {
-            console.log("clean style")
+        if (Phase === PhaseTypes.none){
+            if(id === droppableRegistry.current[0].id) setPhaseAnimation()
             draggableRegistry.current.forEach((e: any) => {
                 e.ref.current.removeAttribute("style")
             })
             listRef.current.removeAttribute("style")
             height.current = listRef.current.getBoundingClientRect().height
-            setTimeout(() => {
-                console.log("create children")
-                children.current = draggableRegistry.current.map((child: any, index: number) =>
-                    ({
-                        index: index,
-                        originIndex: index,
-                        center: calCenter(child.ref.current.getBoundingClientRect()),
-                        rect: child.ref.current.getBoundingClientRect(),
-                        ref: child.ref,
-                        originCenter: calCenter(child.ref.current.getBoundingClientRect()),
-                        listId: props.id
-                    }))
-                console.log("registry:", children.current.map((e: any) => e.center))
-                if (props.droppableRegistry.current[props.droppableRegistry.current.length - 1].id == props.id) {
-                    setReadyToDrag()
-                }
-            }, 300)
-
+            id === droppableRegistry.current[droppableRegistry.current.length - 1].id
+            && setTimeout(()=>setReadyToDrag(),300)
         }
-        else if (Phase == PhaseTypes.mouseDown && DraggingObj.listId == props.id) {
-            remove(DraggingObj.index)
-            placeHolderIndex.current = DraggingObj.index
-        }
-        else if (Phase == PhaseTypes.dropping) {
-            setPhaseAnimation()
-            if (DraggingObj.in == props.id) {
-                const to = children.current[placeHolderIndex.current].center
-                DraggingObj.innerRef.current.setAttribute("style",
-                    `transform:translate(
-                        ${to.x - DraggingObj.originCenter.x}px,
-                        ${to.y - DraggingObj.originCenter.y}px);
-                        z-index:99
-                    `)
+        else if (Phase === PhaseTypes.mouseDown) {          
+            children.current = draggableRegistry.current.map((child: any, index: number) =>
+                ({
+                    index: index,
+                    originIndex: index,
+                    center: calCenter(child.ref.current.getBoundingClientRect()),
+                    rect: child.ref.current.getBoundingClientRect(),
+                    ref: child.ref,
+                    originCenter: calCenter(child.ref.current.getBoundingClientRect()),
+                    listId: id
+                }))
+            if(DraggingObj.listId === id){
+                console.log(DraggingObj)
+                remove(DraggingObj.index)
+                placeHolderIndex.current = DraggingObj.index
             }
-            setTimeout(() => {
-                draggableRegistry.current = []
-                if (props.id == DraggingObj.in) {
-                    props.changeHandler && props.changeHandler({
+                //console.log("registry:", children.current.map((e: any) => e.center))
+        }
+        else if (Phase === PhaseTypes.dropping) {
+            draggableRegistry.current = []
+            if (id === DraggingObj.in) {
+                changeHandler && changeHandler({
+                    from: {
+                        listId: DraggingObj.listId,
+                        index: DraggingObj.index
+                    },
+                    to: {
+                        listId: id,
+                        index: placeHolderIndex.current
+                    }
+                })
+            }
+            if (droppableRegistry.current[droppableRegistry.current.length - 1].id === id) {
+                if (DraggingObj.in == null) {
+                    changeHandler && changeHandler({
                         from: {
                             listId: DraggingObj.listId,
                             index: DraggingObj.index
                         },
                         to: {
-                            listId: props.id,
-                            index: placeHolderIndex.current
+                            listId: null,
+                            index: null
                         }
                     })
                 }
-                if (props.droppableRegistry.current[props.droppableRegistry.current.length - 1].id == props.id) {
-                    if (DraggingObj.in == null) {
-                        props.changeHandler && props.changeHandler({
-                            from: {
-                                listId: DraggingObj.listId,
-                                index: DraggingObj.index
-                            },
-                            to: {
-                                listId: null,
-                                index: null
-                            }
-                        })
-                    }
-                    setPhaseNone()
-                }
-            }, 300)
+                setPhaseNone()
+            }
         }
-    }, [Phase])
+    }, [
+        Phase,
+    ])
 
     React.useEffect(() => {
-        if (Phase == PhaseTypes.dragging) {
+        if (Phase === PhaseTypes.dragging) {
             let newHeight
-            if (DraggingObj.in == props.id) {
+            if (DraggingObj.in === id) {
                 const holderIndex = getInsertPos(DraggingObjPos.pos)
-                if (placeHolderIndex.current != holderIndex) {
+                if (placeHolderIndex.current !== holderIndex) {
                     placeHolderIndex.current = holderIndex
                     pushDown(holderIndex, DraggingObj.originRect.height)
-                    newHeight = DraggingObj.listId == props.id ?
+                    newHeight = DraggingObj.listId === id ?
                         height.current : height.current + DraggingObj.originRect.height
                     listRef.current.setAttribute("style", `height:${newHeight}px`)
                 }
             } else {
-                if (placeHolderIndex.current != -1) {
+                if (placeHolderIndex.current !== -1) {
                     placeHolderIndex.current = -1
                     pushback()
-                    newHeight = DraggingObj.listId == props.id ?
+                    newHeight = DraggingObj.listId === id ?
                         height.current - DraggingObj.originRect.height : height.current
                     listRef.current.setAttribute("style", `height:${newHeight}px`)
                 }
             }
         }
-    }, [DraggingObjPos])
+    }, [
+        DraggingObjPos,
+    ])
 
     const pushback = () => {
-        console.log("push back")
         children.current.forEach((item: any, i: number) => {
             item.ref.current.setAttribute("style",
                 `transform:translate(0px,${item.center.y - item.originCenter.y}px)`)
         })
     }
     const pushDown = (start: number, height: number) => {
-        console.log("push Down from", start)
         children.current.forEach((item: any, i: number) => {
             if (i < start) {
                 item.ref.current.setAttribute("style",
@@ -166,25 +157,25 @@ const Droppable: React.FC<any> = (props: any) => {
         })
         return index
     }
-    const insert = (index: number, obj: any) => {
-        let temp = [...children.current]
-        const insertObjHeight = obj.originRect.height
-        const n = {
-            index: index,
-            originIndex: index,
-            center: obj.center,
-            ref: obj.innerRef,
-            rect: obj.originRect,
-            originCenter: obj.originCenter,
-            listId: props.id
-        }
-        for (let i = index; i < temp.length; i++) {
-            temp[i].center = { x: temp[i].center.x, y: temp[i].center.y + insertObjHeight }
-        }
-        temp.splice(index, 0, n)
-        children.current = temp
-        console.log("after insert index:", index, children.current.map((e: any) => e.center))
-    }
+    // const insert = (index: number, obj: any) => {
+    //     let temp = [...children.current]
+    //     const insertObjHeight = obj.originRect.height
+    //     const n = {
+    //         index: index,
+    //         originIndex: index,
+    //         center: obj.center,
+    //         ref: obj.innerRef,
+    //         rect: obj.originRect,
+    //         originCenter: obj.originCenter,
+    //         listId: id
+    //     }
+    //     for (let i = index; i < temp.length; i++) {
+    //         temp[i].center = { x: temp[i].center.x, y: temp[i].center.y + insertObjHeight }
+    //     }
+    //     temp.splice(index, 0, n)
+    //     children.current = temp
+    //     console.log("after insert index:", index, children.current.map((e: any) => e.center))
+    // }
     const remove = (index: number) => {
         const removeObjHeight = children.current[index].rect.height
         children.current.splice(index, 1)
@@ -197,10 +188,10 @@ const Droppable: React.FC<any> = (props: any) => {
     const droppableContext = {
         registerDraggable,
         listRef: listRef,
-        listId: props.id,
+        listId: id,
     }
     return (
-        <div style={{ width: "100px", height: "800px" }}>
+        <div >
             {props.children(droppableContext)}
         </div>
     );

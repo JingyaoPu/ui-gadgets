@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import List from './List'
 import DragContext from './DragContext'
 import Draggable from './Draggable'
@@ -34,27 +34,23 @@ const MyLists = () => {
         drop0:getItems(5),
         drop1:getButtons(5)
     })
-    
-    console.log("myLists called")
     const changeHandler = (change)=>{
         if(!change) return
         console.log(change)
-        if(change.from.listId!=change.to.listId && change.to.listId){
+        if(change.from.listId !== change.to.listId && change.to.listId){
             const source = [...data[change.from.listId]]
             const target = [...data[change.to.listId]]
             const [temp] = source.splice(change.from.index,1)
             target.splice(change.to.index,0,temp)
             setData((data)=>({...data,[change.from.listId]:source,[change.to.listId]:target}))
         }
-        else if(change.from.listId==change.to.listId){
+        else if(change.from.listId === change.to.listId){
             console.log("setting state!!!")
             const list = [...data[change.from.listId]]
             const [temp] = list.splice(change.from.index,1)
             list.splice(change.to.index,0,temp)
             setData((data)=>({...data,[change.from.listId]:list}))
         }
-        // setFresh(true)
-        // setTimeout(()=>setFresh(false),0)
     }
     console.log(data)
     return ( 
@@ -63,41 +59,53 @@ const MyLists = () => {
     <DragContext changeHandler={changeHandler}>
     {(context) => (
         <>
-        <Droppable id = "drop0"  {...context} >
+        <Droppable 
+        id = "drop0"  
+        {...context} >
         {(droppableProvided)=>(
-        <List {...droppableProvided} {...context}>
+            <List 
+            theme = 'primary'
+            title = "PRIMARY"
+            {...droppableProvided}>
             {data.drop0.map((item, index) => (
                 <Draggable
+                
                 index={index}
-                {...droppableProvided}
-                {...context}>
-                    {(provided)=>(
-                        <div key = {item.id}
-                        {...provided}>
-                            {item.content}
-                        </div>
-                    )}
+                {...droppableProvided}>
+                {(provided)=>(
+                    <li 
+                    key = {item.id}
+                    {...provided}>
+                        {item.content}
+                    </li>
+                )}
                 </Draggable>
             ))}
-        </List>)}
+            </List>)}
         </Droppable >
-        <Droppable id = "drop1"  {...context} >
+        <Droppable 
+        id = "drop1"  
+        {...context} >
         {(droppableProvided)=>(
-        <List {...droppableProvided} {...context}>
+            <List 
+            theme = 'dark'
+            title = "DARK"
+            {...droppableProvided}>
             {data.drop1.map((item, index) => (
                 <Draggable
+                
                 index={index}
-                {...droppableProvided}
-                >
-                    {(provided)=>(
-                        <div key = {item.id}
-                        {...provided}>
-                            {item.content}
-                        </div>
-                    )}
+                {...droppableProvided}>
+                {(provided)=>(
+                    <li 
+                    key = {item.id}
+                    {...provided}>
+                        {item.content}
+                    </li>
+                )}
                 </Draggable>
             ))}
-        </List>)}
+            </List>)}
         </Droppable>
         </>
     )}
